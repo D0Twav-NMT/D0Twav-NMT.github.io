@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Checklist Generator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            padding: 20px;
+            background-color: #fff;
+            min-height: 100vh;
+            transform-origin: top left;
+        }
+        
+        h1 {
+            margin-bottom: 20px;
+            font-family: 'Arial Black', sans-serif;
+            text-align: center;
+            color: #333;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-row label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+            min-width: 80px;
+        }
+        
+        input[type="range"] {
+            width: 120px;
+            cursor: pointer;
+        }
+        
+        .file-input {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            border: 2px dashed #ccc;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            transition: transform 0.2s ease;
+        }
+        
+        .panel-group {
+            background: #fff;
+            border: 2px solid #6d4aff;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+        
+        .panel-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            background: linear-gradient(135deg, #6d4aff 0%, #5a3dd9 100%);
+            color: #fff;
+        }
+        
+        .panel-header input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+            flex-shrink: 0;
+            accent-color: #6d4aff;
+        }
+        
+        .panel-title {
+            font-weight: bold;
+            font-size: 16px;
+            font-family: 'Arial Black', sans-serif;
+            flex-grow: 1;
+            letter-spacing: 1px;
+        }
+        
+        .panel-meta {
+            font-size: 10px;
+            color: rgba(255,255,255,0.9);
+            margin-top: 3px;
+            font-family: 'Georgia', serif;
+        }
+        
+        .panel-meta span {
+            margin-right: 15px;
+        }
+        
+        .item-list {
+            padding: 0;
+            background: #fafafa;
+        }
+        
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px 8px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            width: 100%;
+            font-family: 'Georgia', serif;
+            font-size: 13px;
+        }
+        
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+        
+        .checklist-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            margin-right: 10px;
+            cursor: pointer;
+            flex-shrink: 0;
+            accent-color: #6d4aff;
+        }
+        
+        .part-number {
+            font-weight: bold;
+            font-size: 14px;
+            min-width: 100px;
+            color: #000;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        .length {
+            font-size: 12px;
+            color: #555;
+            margin-left: 8px;
+            white-space: nowrap;
+            font-style: italic;
+        }
+        
+        .quantity {
+            margin-left: 12px;
+            font-weight: bold;
+            color: #6d4aff;
+            min-width: 35px;
+        }
+        
+        .radio-circle {
+            width: 14px;
+            height: 14px;
+            border: 2px solid #999;
+            border-radius: 50%;
+            margin-left: auto;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .checklist-item:hover {
+            background: #f0ebff;
+        }
+        
+        .checklist-item.checked {
+            opacity: 0.5;
+            background: #e8e8e8;
+            text-decoration: line-through;
+        }
+        
+        .checklist-item.checked .radio-circle {
+            background: #6d4aff;
+            border-color: #6d4aff;
+        }
+        
+        .panel-group.checked .item-list {
+            display: none;
+        }
+        
+        .panel-group.checked .panel-header {
+            opacity: 0.6;
+        }
+        
+        /* Print styles */
+        @media print {
+            .controls, .file-input {
+                display: none;
+            }
+            body {
+                padding: 0;
+            }
+            .panel-group {
+                break-inside: avoid;
+            }
+        }
+		/* Side-by-side layout styles */
+		/* Side-by-side layout styles */
+	.container.side-by-side .panel-group {
+	    display: inline-block;
+	    width: 48%;
+	    margin-right: 2%;
+	    margin-bottom: 12px;
+ 	    vertical-align: top;
+	}
+
+	.container.side-by-side .panel-group:nth-child(odd) {
+		margin-right: 2%;
+	}
+
+	.container.side-by-side .panel-group:nth-child(even) {
+		margin-right: 0;
+	}
+
+	@media (max-width: 768px) {
+		.container.side-by-side .panel-group {
+			width: 100%;
+		}
+	}
+    </style>
+</head>
+<body>
+	<div class="controls">
+	    <div class="control-row">
+	        <label>Side-by-side:</label>
+	        <input type="checkbox" id="sideBySideToggle" onchange="toggleSideBySide()">
+	    </div>
+	    <div class="control-row">
+	        <label>Scale:</label>
+	        <input type="range" id="scaleSlider" min="50" max="120" value="100" step="5">
+	        <span id="scaleValue">100%</span>
+	    </div>
+	    <button onclick="window.print()" style="padding: 8px 16px; background: #6d4aff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Print</button>
+	</div>
+    
+    <h1>Panel Checklist</h1>
+    
+    <div class="file-input">
+        <input type="file" id="csvFileInput" accept=".csv,.txt">
+        <label for="csvFileInput">Upload your CSV file</label>
+        <p><small>Expected format: Panel,Part#,Quantity,Length</small></p>
+    </div>
+    
+    <div class="container" id="container">
+        <div id="checklist"></div>
+    </div>
+    
+    <script>
+        document.getElementById('csvFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const csvText = event.target.result;
+                parseCSV(csvText);
+            };
+            reader.readAsText(file);
+        });
+        
+        document.getElementById('scaleSlider').addEventListener('input', function(e) {
+            const scale = e.target.value;
+            document.getElementById('container').style.transform = `scale(${scale/100})`;
+            document.getElementById('container').style.transformOrigin = 'top left';
+            document.getElementById('scaleValue').textContent = `${scale}%`;
+        });
+        
+        // Proper CSV parser that handles quoted fields
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        }
+        
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            const groups = {};
+            
+            // Skip header row and process data
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line || /^,+/.test(line)) continue; // Skip empty or comma-only lines
+                
+                const columns = parseCSVLine(line);
+                
+                if (columns.length >= 4) {
+                    const panel = columns[0].trim();
+                    const part = columns[1].trim();
+                    const quantity = columns[2].trim();
+                    const length = columns[3].trim();
+                    
+                    if (!groups[panel]) {
+                        groups[panel] = [];
+                    }
+                    
+                    groups[panel].push({ part, quantity, length });
+                }
+            }
+            
+            renderChecklist(groups);
+        }
+        
+        function renderChecklist(groups) {
+            const container = document.getElementById('checklist');
+            container.innerHTML = '';
+            
+            // Sort panels numerically (natural sort - 1, 2, 3... 10, 11)
+            const sortedPanels = Object.keys(groups).sort((a, b) => {
+                const numA = parseFloat(a.replace(/[^0-9.-]/g, ''));
+                const numB = parseFloat(b.replace(/[^0-9.-]/g, ''));
+                return (numA - numB) || a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+            });
+            
+            sortedPanels.forEach(panel => {
+                let items = groups[panel];
+                
+                // Sort items by Part # (alphanumeric sort - lowest to highest)
+                items.sort((a, b) => {
+                    return a.part.localeCompare(b.part, undefined, { numeric: true, sensitivity: 'base' });
+                });
+                
+                const panelDiv = document.createElement('div');
+                panelDiv.className = 'panel-group';
+                panelDiv.dataset.panel = panel;
+                
+                panelDiv.innerHTML = `
+                    <div class="panel-header">
+                        <input type="checkbox" onchange="togglePanel(this)">
+                        <div>
+                            <span class="panel-title">Panel ${escapeHtml(panel)}</span>
+                            <div class="panel-meta">
+                                <span><strong>Shape:</strong> ____________</span>
+                                <span><strong>Color:</strong> ____________</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="item-list">
+                        ${items.map((item, index) => `
+                            <div class="checklist-item" onclick="toggleItem(this)">
+                                <input type="checkbox" onchange="event.stopPropagation()">
+                                <span class="part-number">${escapeHtml(item.part)}</span>
+                                <span class="length">(${escapeHtml(item.length)})</span>
+                                <span class="quantity">[${escapeHtml(item.quantity)}]</span>
+                                <div class="radio-circle" onclick="toggleRadio(this)"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                container.appendChild(panelDiv);
+            });
+        }
+        
+        function togglePanel(checkbox) {
+            const panel = checkbox.closest('.panel-group');
+            panel.classList.toggle('checked');
+        }
+        
+        function toggleItem(item) {
+            item.classList.toggle('checked');
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+        }
+        
+        function toggleRadio(circle) {
+            const item = circle.closest('.checklist-item');
+            item.classList.toggle('checked');
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            checkbox.checked = !checkbox.checked;
+        }
+        
+        // Prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+		function toggleSideBySide() {
+			const container = document.getElementById('container');
+			container.classList.toggle('side-by-side');
+    
+    // Adjust scale automatically when switching layouts
+			if (container.classList.contains('side-by-side')) {
+		        document.getElementById('scaleSlider').value = '75';
+		        document.getElementById('scaleValue').textContent = '75%';
+		        container.style.transform = `scale(0.75)`;
+		    } else {
+		        document.getElementById('scaleSlider').value = '100';
+		        document.getElementById('scaleValue').textContent = '100%';
+		        container.style.transform = `scale(1)`;
+		    }
+		}
+    </script>
+</body>
+</html>
